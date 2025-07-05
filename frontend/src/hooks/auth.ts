@@ -1,4 +1,4 @@
-// frontend/src/hooks/useAuth.ts
+"use client";
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '@/store';
 import { loginUser, signupUser, logoutUser, getCurrentUser, clearError } from '@/store/authSlice';
