@@ -4,22 +4,24 @@ import { useState, useEffect, useRef } from 'react';
 import { Chat } from '@/types/chat';
 import { useAuth } from '@/hooks/auth';
 import { useChat } from '@/hooks/useChat';
-
+import { User } from '@/types/auth';
 interface ChatWindowProps {
     chat: Chat;
+    selectedUser?: User | null;
     onClose: () => void;
 }
 
-export default function ChatWindow({ chat, onClose }: ChatWindowProps) {
+export default function ChatWindow({ chat, selectedUser, onClose }: ChatWindowProps) {
     const [messageText, setMessageText] = useState('');
     const [isTyping] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const { user: currentUser } = useAuth();
     const { messages, loadChatMessages } = useChat();
 
-    const otherUser = chat.participants.find(p => p.user.id !== currentUser?.id)?.user;
+    const otherUser = chat.participants.find(p => p.user.id !== currentUser?.id)?.user || selectedUser;
 
     useEffect(() => {
+        if (!chat.id) return;
         loadChatMessages(chat.id);
     }, [chat.id, loadChatMessages]);
 

@@ -12,13 +12,21 @@ export default function ChatLayout() {
     const { user, logout } = useAuth();
     const { initializeChat, activeChat, closeChat } = useChat();
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
+    const [chatLoading, setChatLoading] = useState(false);
 
     const handleUserSelect = async (selectedUser: User) => {
+
         setSelectedUser(selectedUser);
+        setChatLoading(true);
+
         try {
             await initializeChat(selectedUser.id);
         } catch (error) {
             console.error('Failed to start chat:', error);
+            setSelectedUser(null);
+        }
+        finally {
+            setChatLoading(false);
         }
     };
 
@@ -34,6 +42,7 @@ export default function ChatLayout() {
             console.error('Logout failed:', error);
         }
     };
+
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -69,7 +78,7 @@ export default function ChatLayout() {
             {/* Main Content */}
             <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
                 <div className="px-4 py-6 sm:px-0">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div className="grid āgrid-cols-1 lg:grid-cols-2 gap-6">
                         {/* User List */}
                         <div>
                             <UserList onUserSelect={handleUserSelect} />
@@ -77,8 +86,17 @@ export default function ChatLayout() {
 
                         {/* Chat Window */}
                         <div>
-                            {activeChat && selectedUser ? (
-                                <ChatWindow chat={activeChat} onClose={handleCloseChat} />
+
+                            {chatLoading ? (
+                                <div className="bg-white shadow rounded-lg flex items-center justify-center h-96">
+                                    <div className="text-center">
+                                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+                                        <p className="text-gray-500">Opening chat with {selectedUser?.displayName}...</p>
+                                    </div>
+                                </div>
+                            ) : activeChat && selectedUser ? (
+                                <ChatWindow chat={activeChat}
+                                    selectedUser={selectedUser} onClose={handleCloseChat} />
                             ) : (
                                 <div className="bg-white shadow rounded-lg flex items-center justify-center h-96">
                                     <div className="text-center">
