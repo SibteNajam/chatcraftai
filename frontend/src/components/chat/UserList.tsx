@@ -1,34 +1,95 @@
 'use client';
 
-import { useEffect } from 'react';
-import { useChat } from '@/hooks/useChat';
+import { useEffect, useState } from 'react';
+// import { useChat } from '@/hooks/useChat';
 import { User } from '@/types/chat';
+// import { dummyUsers } from '@/data/mockData'; // Assuming you have a dummy users data file
+// Inline dummy data (to avoid import issues)
+const dummyUsers: User[] = [
+    {
+        id: '1',
+        email: 'john.doe@example.com',
+        displayName: 'John Doe',
+        createdAt: '2024-01-15T10:30:00Z',
+    },
+    {
+        id: '2',
+        email: 'jane.smith@example.com',
+        displayName: 'Jane Smith',
+        createdAt: '2024-01-16T09:15:00Z',
+    },
+    {
+        id: '3',
+        email: 'mike.johnson@example.com',
+        displayName: 'Mike Johnson',
+        createdAt: '2024-01-17T14:45:00Z',
+    },
+    {
+        id: '4',
+        email: 'sarah.wilson@example.com',
+        displayName: 'Sarah Wilson',
+        createdAt: '2024-01-18T11:20:00Z',
+    },
+    {
+        id: '5',
+        email: 'alex.brown@example.com',
+        displayName: 'Alex Brown',
+        createdAt: '2024-01-19T16:30:00Z',
+    },
+];
 
 interface UserListProps {
     onUserSelect: (user: User) => void;
 }
 export default function UserList({ onUserSelect }: UserListProps) {
-    const { users, isLoading, error, loadUsers } = useChat();
+    const [users, setUsers] = useState<User[]>([]);
+    // const { users, isLoading, error, loadUsers } = useChat();
+    const [isLoading, setIsLoading] = useState(true);
+    const [isMounted, setIsMounted] = useState(false);
+
 
     useEffect(() => {
-        loadUsers();
+        setIsMounted(true);
     }, []);
+    // useEffect(() => {
+    //     loadUsers();
+    // }, []);
+    useEffect(() => {
+        if (!isMounted) return;
 
-    if (isLoading) {
+        const loadDummyUsers = () => {
+            setTimeout(() => {
+                setUsers(dummyUsers);
+                setIsLoading(false);
+            }, 1000);
+        };
+
+        loadDummyUsers();
+    }, [isMounted]);
+
+    // Show loading state for both !isMounted and isLoading
+    if (!isMounted || isLoading) {
         return (
-            <div className="flex items-center justify-center h-64">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+            <div className="bg-white shadow rounded-lg">
+                <div className="px-4 py-5 sm:p-6">
+                    <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
+                        Available Users
+                    </h3>
+                    <div className="flex items-center justify-center h-64">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+                    </div>
+                </div>
             </div>
         );
     }
 
-    if (error) {
-        return (
-            <div className="p-4 bg-red-50 border border-red-200 rounded-md">
-                <p className="text-red-800">Error loading users: {error}</p>
-            </div>
-        );
-    }
+    // if (error) {
+    //     return (
+    //         <div className="p-4 bg-red-50 border border-red-200 rounded-md">
+    //             <p className="text-red-800">Error loading users: {error}</p>
+    //         </div>
+    //     );
+    // }
 
     return (
         <div className="bg-white shadow rounded-lg">

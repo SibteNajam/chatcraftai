@@ -48,7 +48,7 @@ export const dummyMessages: Message[] = [
     },
     {
         id: 'msg2',
-        content: 'I\'m doing great! Thanks for asking. How about you?',
+        content: 'I\'m doing great! Thanks for asking.',
         senderId: 'current-user',
         receiverId: '1',
         chatId: 'chat1',
@@ -56,42 +56,6 @@ export const dummyMessages: Message[] = [
         sender: {
             id: 'current-user',
             displayName: 'You',
-        },
-    },
-    {
-        id: 'msg3',
-        content: 'That\'s awesome! I was thinking about that project we discussed.',
-        senderId: '1',
-        receiverId: 'current-user',
-        chatId: 'chat1',
-        createdAt: '2024-01-20T10:05:00Z',
-        sender: {
-            id: '1',
-            displayName: 'John Doe',
-        },
-    },
-    {
-        id: 'msg4',
-        content: 'Yes! I\'ve been working on it. Making good progress.',
-        senderId: 'current-user',
-        receiverId: '1',
-        chatId: 'chat1',
-        createdAt: '2024-01-20T10:07:00Z',
-        sender: {
-            id: 'current-user',
-            displayName: 'You',
-        },
-    },
-    {
-        id: 'msg5',
-        content: 'Hi there! Welcome to ChatCraft!',
-        senderId: '2',
-        receiverId: 'current-user',
-        chatId: 'chat2',
-        createdAt: '2024-01-20T09:30:00Z',
-        sender: {
-            id: '2',
-            displayName: 'Jane Smith',
         },
     },
 ];

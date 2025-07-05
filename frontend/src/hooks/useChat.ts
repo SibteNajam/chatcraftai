@@ -1,11 +1,23 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '@/store';
 import { fetchUsers, startChat, fetchChatMessages, fetchUserChats, setActiveChat, addMessage, clearError, clearActiveChat } from '@/store/chatSlice';
-import { User, Chat, Message } from '@/types/chat';
+import { Chat, Message } from '@/types/chat';
 
 export const useChat = () => {
     const dispatch = useDispatch<AppDispatch>();
-    const { users, chats, activeChat, messages, isLoading, error } = useSelector((state: RootState) => state.chat);
+
+    const chatState = useSelector((state: RootState) => state.chat || {});
+    const {
+        chats = [],
+        messages = [],
+        isLoading = false,
+        error = null
+    } = chatState;
+    const users = chatState.users || [];
+    const activeChat = chatState.activeChat || null;
+
+
 
     const loadUsers = async () => {
         return dispatch(fetchUsers());
