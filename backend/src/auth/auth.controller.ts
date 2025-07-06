@@ -1,12 +1,12 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, BadRequestException, ConflictException, UnauthorizedException, NotFoundException, Req, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiBody, ApiTags,ApiConsumes } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiTags, ApiConsumes } from '@nestjs/swagger';
 import { Public } from 'src/decorators/isPublic';
 import { User } from 'src/user/entities/user.entity';
 // import { LoginRequest } from 'src/utils/requests';
 import { AuthService } from './auth.service';
 import { LoginRequest } from 'src/utils/requests';
 import {
- 
+
   UseInterceptors,
   UploadedFile,
 
@@ -20,33 +20,33 @@ export class AuthController {
   constructor(
     private readonly authService: AuthService,
 
-    ) {}
-  
+  ) { }
+
 
   @Public()
   @ApiBody({ type: LoginRequest })
   @Post('/login')
   public async login(@Body() body: LoginRequest) {
     const { email, password } = body;
-    
+
     const user = await this.authService.findUserByEmail(email);
-    if(user.isDeleted === true){
+    if (user.isDeleted === true) {
       throw new UnauthorizedException({
         status: 'Fail',
         data: {},
-        statusCode:401,
-        message:'User not exists'
+        statusCode: 401,
+        message: 'User not exists'
       });
     }
-    if(user.isVerified === false){
+    if (user.isVerified === false) {
       throw new UnauthorizedException({
         status: 'Fail',
         data: {},
-        statusCode:401,
-        message:'User is not verified'
+        statusCode: 401,
+        message: 'User is not verified'
       });
     }
-    
+
 
     if (user && user.isVerified === true) {
       const valid = user
@@ -56,23 +56,23 @@ export class AuthController {
         throw new UnauthorizedException({
           status: 'Fail',
           data: {},
-          statusCode:401,
-          message:'Invalid credentials.'
+          statusCode: 401,
+          message: 'Invalid credentials.'
         });
       }
     } else if (user && !user.isVerified) {
       throw new UnauthorizedException({
         status: 'Fail',
         data: {},
-        statusCode:401,
-        message:'User is not verified.'
+        statusCode: 401,
+        message: 'User is not verified.'
       });
     } else {
       throw new UnauthorizedException({
         status: 'Fail',
         data: {},
-        statusCode:401,
-        message:'User does not exists.'
+        statusCode: 401,
+        message: 'User does not exists.'
       });
     }
     const accessToken = await this.authService.generateAccessToken(user);
@@ -84,11 +84,12 @@ export class AuthController {
       ...this.buildResponsePayload(user, accessToken, refreshToken),
 
     };
+    console.log('Login payload:', payload);
     return {
       status: 'Success',
-      data: {data:payload},
-      statusCode:200,
-      message:'Login Succesfully'
+      data: { data: payload },
+      statusCode: 200,
+      message: 'Login Succesfully'
     };
   }
 

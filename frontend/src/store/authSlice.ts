@@ -15,7 +15,15 @@ export const loginUser = createAsyncThunk(
     async (credentials: LoginCredentials, { rejectWithValue }) => {
         try {
             const response = await login(credentials);
-            return response.user;
+            console.log(' Login response in slice:', response);
+
+            // Store the token if you need it later
+            if (response.payload && response.payload.token) {
+                // You might want to store the token in localStorage or handle it differently
+                console.log(' Received token:', response.payload.token);
+            }
+
+            return response.user; // Return the user object for state
         } catch (error) {
             return rejectWithValue(error instanceof Error ? error.message : 'Login failed');
         }

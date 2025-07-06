@@ -45,7 +45,12 @@ export default function LoginForm() {
         }
 
         try {
-            await login(formData);
+            const result = await login(formData);
+            console.log('Login result: user expected', result);
+            if (result) {
+                console.log('Login successful:', result);
+                router.push('/chat');
+            }
         } catch (error) {
             console.error('Login failed:', error);
         }
