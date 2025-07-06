@@ -25,6 +25,7 @@ export class UserController {
   @Public()
   @Post('register-user')
   registerUser(@Body() createUserDto: RegisterUserRequest) {
+    console.log('User registration hit'); // for debugging
     return this.userService.createUser(createUserDto);
   }
 

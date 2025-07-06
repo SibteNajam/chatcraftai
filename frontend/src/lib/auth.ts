@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { LoginCredentials, SignupCredentials, AuthResponse } from '@/types/auth';
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000/api';
+const API_BASE_URL = 'https://localhost:3000';
 export async function login(credentials: LoginCredentials): Promise<any> {
-    const response = await fetch(`${API_BASE_URL}/auth/login`, {
+    const response = await fetch('http://localhost:3000/auth/login', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -19,7 +19,7 @@ export async function login(credentials: LoginCredentials): Promise<any> {
     return response.json();
 }
 export async function signup(credentials: SignupCredentials): Promise<any> {
-    const response = await fetch(`${API_BASE_URL}/user/register-user`, {
+    const response = await fetch('http://localhost:3000/user/register-user', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -33,8 +33,11 @@ export async function signup(credentials: SignupCredentials): Promise<any> {
         throw new Error(error.message || 'Signup failed');
     }
 
-    return response.json();
+    const data = await response.payload.json();
+    console.log('✅ Parsed response data:', data);
+    return data;
 }
+
 export async function logout(): Promise<void> {
     const response = await fetch(`${API_BASE_URL}/auth/logout`, {
         method: 'POST',

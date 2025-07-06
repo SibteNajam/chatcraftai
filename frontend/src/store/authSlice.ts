@@ -27,7 +27,13 @@ export const signupUser = createAsyncThunk(
     async (credentials: SignupCredentials, { rejectWithValue }) => {
         try {
             const response = await signup(credentials);
-            return response.user;
+            console.log('Signup response in slice:', response);
+            if (response.status === 'Success' && response.data && response.data.user) {
+                return response.data.user; // Return the user object
+            } else {
+                // If response structure is different, adapt accordingly
+                return response.user || response;
+            }
         } catch (error) {
             return rejectWithValue(error instanceof Error ? error.message : 'Signup failed');
         }

@@ -52,9 +52,13 @@ async function bootstrap() {
   app.use(helmet.noSniff()); // Sets X-Content-Type-Options header to 'nosniff'
   app.use(helmet.referrerPolicy({ policy: 'no-referrer' })); // Sets Referrer-Policy header
   app.use(helmet.expectCt({ maxAge: 86400 }));
-  app.enableCors();
+  app.enableCors({
+    origin: 'http://localhost:3001',
+    credentials: true,
+  });
   await app.listen(3000, '0.0.0.0', () => {
     console.log('Server running on port 3000');
   });
+
 }
 bootstrap();

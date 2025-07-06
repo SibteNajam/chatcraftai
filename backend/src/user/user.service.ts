@@ -69,6 +69,19 @@ export class UserService {
         }
       );
     }
+    return {
+      status: 'Success',
+      data: {
+        user: {
+          id: createdUser.id,
+          email: createdUser.email,
+          displayName: createdUser.name, // Map 'name' to 'displayName'
+          createdAt: createdUser.createdAt.toISOString(),
+        }
+      },
+      statusCode: 201,
+      message: 'User created successfully'
+    };
 
   }
 
