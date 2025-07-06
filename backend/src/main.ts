@@ -9,8 +9,8 @@ import { join } from 'path';
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
   const config = new DocumentBuilder()
-    .setTitle("Social API's")
-    .setDescription("The social API's description")
+    .setTitle("chatAI API's")
+    .setDescription("The chatAI task")
     .setVersion('1.0')
     .addBearerAuth(
       {
@@ -55,5 +55,6 @@ async function bootstrap() {
   app.enableCors();
   await app.listen(3000, '0.0.0.0', () => {
     console.log('Server running on port 3000');
-  });}
+  });
+}
 bootstrap();

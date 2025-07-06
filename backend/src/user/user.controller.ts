@@ -19,7 +19,7 @@ import { RegisterUserRequest } from 'src/utils/requests';
 @ApiTags('User')
 @Controller('user')
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(private readonly userService: UserService) { }
 
 
   @Public()

@@ -7,6 +7,8 @@ import { UserModule } from './user/user.module';
 import { databaseProvider } from './utils/connectionOptions';
 import { APP_GUARD } from '@nestjs/core';
 import { GrammarModule } from './grammar/grammar.module';
+import { JWTGuard } from './guards/jwt.guard';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -14,11 +16,16 @@ import { GrammarModule } from './grammar/grammar.module';
     ConfigModule.forRoot({ isGlobal: true }),
     UserModule,
     GrammarModule,
+    AuthModule,
 
   ],
   controllers: [AppController],
   providers: [
     AppService,
+    {
+      provide: APP_GUARD,
+      useClass: JWTGuard,
+    },
   ],
 })
 export class AppModule { }

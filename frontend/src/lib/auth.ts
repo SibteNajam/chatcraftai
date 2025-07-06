@@ -2,7 +2,7 @@
 import { LoginCredentials, SignupCredentials, AuthResponse } from '@/types/auth';
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000/api';
 export async function login(credentials: LoginCredentials): Promise<any> {
-    const response = await fetch(`${API_BASE_URL}/user/register-user`, {
+    const response = await fetch(`${API_BASE_URL}/auth/login`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -19,7 +19,7 @@ export async function login(credentials: LoginCredentials): Promise<any> {
     return response.json();
 }
 export async function signup(credentials: SignupCredentials): Promise<any> {
-    const response = await fetch(`${API_BASE_URL}/auth/signup`, {
+    const response = await fetch(`${API_BASE_URL}/user/register-user`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
