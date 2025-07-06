@@ -21,3 +21,6 @@ added grmmar correction
 3..in custom hook checkgramer is called and debouncing logic here timeout or some checks if empty string return immediate
 4..then here if all checks cleared it calls ucheck grammar of Grammar Service class where apii is called and then result and original text is returned
 5.. and then result is set in grammarresult 
+
+
+cannot properly document becasue time is not enough to document side by side properly 
