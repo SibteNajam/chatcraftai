@@ -1,10 +1,13 @@
 // frontend/src/store/index.ts
 import { configureStore } from '@reduxjs/toolkit';
-import authReducer from './authSlice'; // write code in reducer after this
+import authReducer from './authSlice';
+import chatReducer from './chatSlice';
+
 
 export const store = configureStore({
     reducer: {
         auth: authReducer,
+        chat: chatReducer,
     },
 });
 

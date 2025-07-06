@@ -1,10 +1,13 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Chat } from '@/types/chat';
+import { Chat, User } from '@/types/chat';
 import { useAuth } from '@/hooks/auth';
 import { useChat } from '@/hooks/useChat';
-import { User } from '@/types/auth';
+import { useGrammarCheck } from '@/hooks/useGrammarCheck';
+import { GrammarHighlight } from './GrammarHighlight';
+import { GrammarError } from '@/types/grammar';
+
 interface ChatWindowProps {
     chat: Chat;
     selectedUser?: User | null;
@@ -14,11 +17,15 @@ interface ChatWindowProps {
 export default function ChatWindow({ chat, selectedUser, onClose }: ChatWindowProps) {
     const [messageText, setMessageText] = useState('');
     const [isTyping] = useState(false);
+    const [showGrammarPreview, setShowGrammarPreview] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const inputRef = useRef<HTMLInputElement>(null);
+
     const { user: currentUser } = useAuth();
     const { messages, loadChatMessages } = useChat();
+    const { grammarResult, isChecking, error: grammarError, checkGrammar, clearGrammarCheck } = useGrammarCheck(1500); // 1.5 second debounce
 
-    const otherUser = chat.participants.find(p => p.user.id !== currentUser?.id)?.user || selectedUser;
+    const otherUser = chat.participants?.find(p => p.user.id !== currentUser?.id)?.user || selectedUser;
 
     useEffect(() => {
         if (!chat.id) return;
@@ -29,14 +36,43 @@ export default function ChatWindow({ chat, selectedUser, onClose }: ChatWindowPr
         scrollToBottom();
     }, [messages]);
 
+    useEffect(() => {
+        // Check grammar when message text changes
+        if (messageText.trim().length > 3) { // Only check if more than 3 characters
+            checkGrammar(messageText);
+        } else {
+            clearGrammarCheck();
+        }
+    }, [messageText, checkGrammar, clearGrammarCheck]);
+
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    };
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setMessageText(e.target.value);
+    };
+
+    const applySuggestion = (error: GrammarError) => {
+        const newText = messageText.slice(0, error.startIndex) +
+            error.suggestion +
+            messageText.slice(error.endIndex);
+        setMessageText(newText);
+
+        // Focus back to input
+        setTimeout(() => {
+            inputRef.current?.focus();
+        }, 100);
     };
 
     const handleSendMessage = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!messageText.trim()) return;
-        /// need implementation to send message to backend using websocket
+
+        // Clear grammar check when sending
+        clearGrammarCheck();
+        setShowGrammarPreview(false);
+
         console.log('Sending message:', messageText);
         setMessageText('');
     };
@@ -48,6 +84,9 @@ export default function ChatWindow({ chat, selectedUser, onClose }: ChatWindowPr
         });
     };
 
+    const hasGrammarErrors = grammarResult?.hasErrors || false;
+    const grammarErrors = grammarResult?.corrections || [];
+
     return (
         <div className="bg-white shadow rounded-lg flex flex-col h-96">
             {/* Chat Header */}
@@ -55,38 +94,53 @@ export default function ChatWindow({ chat, selectedUser, onClose }: ChatWindowPr
                 <div className="flex items-center">
                     <div className="h-8 w-8 bg-indigo-500 rounded-full flex items-center justify-center">
                         <span className="text-white font-medium text-xs">
-                            {otherUser?.displayName.charAt(0).toUpperCase()}
+                            {otherUser?.displayName?.charAt(0).toUpperCase() || '?'}
                         </span>
                     </div>
                     <div className="ml-3">
                         <p className="text-sm font-medium text-gray-900">
-                            {otherUser?.displayName}
+                            {otherUser?.displayName || 'Unknown User'}
                         </p>
                         <p className="text-xs text-gray-500">
                             {isTyping ? 'Typing...' : 'Online'}
                         </p>
                     </div>
                 </div>
-                <button
-                    onClick={onClose}
-                    className="text-gray-400 hover:text-gray-500 focus:outline-none"
-                >
-                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M6 18L18 6M6 6l12 12"
-                        />
-                    </svg>
-                </button>
+
+                {/* Grammar Status Indicator */}
+                <div className="flex items-center space-x-3">
+                    {isChecking && (
+                        <div className="flex items-center space-x-1 text-xs text-blue-600">
+                            <div className="animate-spin rounded-full h-3 w-3 border border-blue-600 border-t-transparent"></div>
+                            <span>Checking...</span>
+                        </div>
+                    )}
+
+                    {hasGrammarErrors && (
+                        <div className="flex items-center space-x-1 text-xs text-red-600">
+                            <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                            </svg>
+                            <span>{grammarErrors.length} issue{grammarErrors.length !== 1 ? 's' : ''}</span>
+                        </div>
+                    )}
+
+                    <button
+                        onClick={onClose}
+                        className="text-gray-400 hover:text-gray-500 focus:outline-none"
+                    >
+                        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
             </div>
 
             {/* Messages Area */}
             <div className="flex-1 overflow-y-auto p-4 space-y-3">
                 {messages.length === 0 ? (
                     <div className="text-center text-gray-500 py-8">
-                        <p>No messages yet. Start the conversation!</p>
+                        <p>No messages yet. Start the conversation with {otherUser?.displayName || 'this user'}!</p>
                     </div>
                 ) : (
                     messages.map((message) => {
@@ -117,26 +171,95 @@ export default function ChatWindow({ chat, selectedUser, onClose }: ChatWindowPr
                 <div ref={messagesEndRef} />
             </div>
 
+            {/* Grammar Preview */}
+            {showGrammarPreview && hasGrammarErrors && (
+                <div className="border-t border-yellow-200 bg-yellow-50 p-3">
+                    <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                            <p className="text-xs font-medium text-yellow-800 mb-1">Grammar Preview:</p>
+                            <div className="text-sm text-gray-700 bg-white p-2 rounded border">
+                                <GrammarHighlight
+                                    text={messageText}
+                                    errors={grammarErrors}
+                                    onSuggestionClick={applySuggestion}
+                                />
+                            </div>
+                        </div>
+                        <button
+                            onClick={() => setShowGrammarPreview(false)}
+                            className="ml-2 text-yellow-600 hover:text-yellow-800"
+                        >
+                            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            )}
+
             {/* Message Input */}
             <div className="border-t border-gray-200 p-4">
-                <form onSubmit={handleSendMessage} className="flex space-x-2">
-                    <input
-                        type="text"
-                        value={messageText}
-                        onChange={(e) => setMessageText(e.target.value)}
-                        placeholder="Type a message..."
-                        className="flex-1 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                    />
-                    <button
-                        type="submit"
-                        disabled={!messageText.trim()}
-                        className={`px-4 py-2 rounded-md font-medium ${messageText.trim()
-                            ? 'bg-indigo-600 text-white hover:bg-indigo-700'
-                            : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                            } focus:outline-none focus:ring-2 focus:ring-indigo-500`}
-                    >
-                        Send
-                    </button>
+                <form onSubmit={handleSendMessage} className="space-y-2">
+                    {/* Input with Grammar Highlighting */}
+                    <div className="relative">
+                        <input
+                            ref={inputRef}
+                            type="text"
+                            value={messageText}
+                            onChange={handleInputChange}
+                            placeholder={`Message ${otherUser?.displayName || 'user'}...`}
+                            className={`w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${hasGrammarErrors ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                                }`}
+                        />
+
+                        {/* Grammar indicators */}
+                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center space-x-2">
+                            {isChecking && (
+                                <div className="animate-spin rounded-full h-4 w-4 border border-blue-500 border-t-transparent"></div>
+                            )}
+
+                            {hasGrammarErrors && (
+                                <button
+                                    type="button"
+                                    onClick={() => setShowGrammarPreview(!showGrammarPreview)}
+                                    className="text-red-500 hover:text-red-700"
+                                    title="Show grammar suggestions"
+                                >
+                                    <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                                    </svg>
+                                </button>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Send Button */}
+                    <div className="flex justify-between items-center">
+                        <div className="flex items-center space-x-2 text-xs text-gray-500">
+                            {grammarError && (
+                                <span className="text-red-500">Grammar check failed</span>
+                            )}
+                            {hasGrammarErrors && (
+                                <span className="text-yellow-600">
+                                    {grammarErrors.length} grammar issue{grammarErrors.length !== 1 ? 's' : ''} found
+                                </span>
+                            )}
+                        </div>
+
+                        <button
+                            type="submit"
+                            disabled={!messageText.trim()}
+                            className={`px-6 py-2 rounded-lg font-medium transition-colors ${messageText.trim()
+                                ? 'bg-indigo-600 text-white hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500'
+                                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                } focus:outline-none`}
+                        >
+                            Send
+                            {hasGrammarErrors && (
+                                <span className="ml-1 text-yellow-200">⚠️</span>
+                            )}
+                        </button>
+                    </div>
                 </form>
             </div>
         </div>
