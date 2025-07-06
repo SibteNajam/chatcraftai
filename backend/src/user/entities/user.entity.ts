@@ -12,6 +12,8 @@ import {
 } from 'typeorm';
 import { Exclude } from 'class-transformer';
 import { ApiProperty, ApiHideProperty } from '@nestjs/swagger';
+import { ChatMessage } from 'src/chat-messages/entities/chat-message.entity';
+import { Chat } from 'src/chat/entities/chat.entity';
 
 @Entity('users')
 export class User {
@@ -35,16 +37,16 @@ export class User {
   })
   dateOfBirth: Date;
 
-  
+
   @ApiHideProperty()
   @Column({ nullable: true })
   @Exclude()
   password: string;
 
-  
+
   @Column({ default: false })
   isDeleted: boolean;
-  
+
   @Exclude()
   @ApiHideProperty()
   @Column({ default: false })
@@ -73,6 +75,13 @@ export class User {
     onUpdate: 'CURRENT_TIMESTAMP(6)',
   })
   updatedAt: Date;
+
+  @OneToMany(() => Chat, (chat) => chat.fromUser)
+  chats: Chat[];
+
+  @OneToMany(() => ChatMessage, (chatMessage) => chatMessage.sender)
+  chatMessage: ChatMessage[];
+
 
 }
 

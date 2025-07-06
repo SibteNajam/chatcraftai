@@ -9,6 +9,9 @@ import { APP_GUARD } from '@nestjs/core';
 import { GrammarModule } from './grammar/grammar.module';
 import { JWTGuard } from './guards/jwt.guard';
 import { AuthModule } from './auth/auth.module';
+import { ChatModule } from './chat/chat.module';
+import { ChatMessagesModule } from './chat-messages/chat-messages.module';
+
 
 @Module({
   imports: [
@@ -17,8 +20,8 @@ import { AuthModule } from './auth/auth.module';
     UserModule,
     GrammarModule,
     AuthModule,
-
-  ],
+    ChatModule,
+    ChatMessagesModule],
   controllers: [AppController],
   providers: [
     AppService,

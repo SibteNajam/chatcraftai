@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // frontend/src/components/chat/ChatLayout.tsx
 'use client';
@@ -8,20 +9,21 @@ import { User } from '@/types/chat';
 import UserList from './UserList';
 import ChatWindow from './ChatWindow';
 import { useChat } from '@/hooks/useChat';
+import ChatApp from './chatApp';
 
 export default function ChatLayout() {
     const { user, logout } = useAuth();
     const { initializeChat, activeChat, closeChat } = useChat();
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
     const [chatLoading, setChatLoading] = useState(false);
-
+    const [currentUserId, setCurrentUserId] = useState('755d5f20-ff08-47f7-8d63-99a251463e5c');
     const handleUserSelect = async (selectedUser: User) => {
 
         setSelectedUser(selectedUser);
         setChatLoading(true);
 
         try {
-            await initializeChat(selectedUser.id);
+            await initializeChat(currentUserId, selectedUser.id);
         } catch (error) {
             console.error('Failed to start chat:', error);
             setSelectedUser(null);
@@ -87,6 +89,7 @@ export default function ChatLayout() {
 
                         {/* Chat Window */}
                         <div>
+                            <ChatApp />
 
                             {chatLoading ? (
                                 <div className="bg-white shadow rounded-lg flex items-center justify-center h-96">

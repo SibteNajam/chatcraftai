@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { ChatState, User, Chat, Message } from '@/types/chat';
-import { getUsers, initializeChat, getChatMessages, getUserChats } from '@/lib/chat';
+import { getUsers, initializeChat, getChatMessages } from '@/lib/chat';
 
 const initialState: ChatState = {
     users: [],
@@ -28,11 +28,21 @@ export const fetchUsers = createAsyncThunk(
 
 export const startChat = createAsyncThunk(
     'chat/startChat',
-    async (receiverId: string, { rejectWithValue }) => {
+    async (
+        { currentUserId, toUserId }: { currentUserId: string; toUserId: string },
+        thunkAPI
+    ) => {
         try {
-            return await initializeChat(receiverId);
+            console.log('🔄 Slice: Starting chat with user:', toUserId);
+
+            if (!currentUserId) {
+                throw new Error('Current user not found');
+            }
+
+            const chat = await initializeChat(currentUserId, toUserId);
+            return chat;
         } catch (error) {
-            return rejectWithValue(error instanceof Error ? error.message : 'Failed to start chat');
+            return thunkAPI.rejectWithValue(error instanceof Error ? error.message : 'Failed to start chat');
         }
     }
 );
@@ -48,16 +58,16 @@ export const fetchChatMessages = createAsyncThunk(
     }
 );
 
-export const fetchUserChats = createAsyncThunk(
-    'chat/fetchUserChats',
-    async (_, { rejectWithValue }) => {
-        try {
-            return await getUserChats();
-        } catch (error) {
-            return rejectWithValue(error instanceof Error ? error.message : 'Failed to fetch chats');
-        }
-    }
-);
+// export const fetchUserChats = createAsyncThunk(
+//     'chat/fetchUserChats',
+//     async (_, { rejectWithValue }) => {
+//         try {
+//             return await getUserChats();
+//         } catch (error) {
+//             return rejectWithValue(error instanceof Error ? error.message : 'Failed to fetch chats');
+//         }
+//     }
+// );
 
 const chatSlice = createSlice({
     name: 'chat',
@@ -113,12 +123,13 @@ const chatSlice = createSlice({
             .addCase(fetchChatMessages.fulfilled, (state, action: PayloadAction<Message[]>) => {
                 state.messages = action.payload;
             })
-            // Fetch user chats
-            .addCase(fetchUserChats.fulfilled, (state, action: PayloadAction<Chat[]>) => {
-                state.chats = action.payload;
-            });
+        // Fetch user chats
+        // .addCase(fetchUserChats.fulfilled, (state, action: PayloadAction<Chat[]>) => {
+        //     state.chats = action.payload;
+        // });
     },
 });
 
 export const { setActiveChat, addMessage, clearError, clearActiveChat } = chatSlice.actions;
 export default chatSlice.reducer;
+

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '@/store';
-import { fetchUsers, startChat, fetchChatMessages, fetchUserChats, setActiveChat, addMessage, clearError, clearActiveChat } from '@/store/chatSlice';
+import { fetchUsers, startChat, fetchChatMessages, setActiveChat, addMessage, clearError, clearActiveChat } from '@/store/chatSlice';
 import { Chat, Message } from '@/types/chat';
 
 export const useChat = () => {
@@ -30,17 +30,17 @@ export const useChat = () => {
         }
     };
 
-    const initializeChat = async (receiverId: string) => {
-        return dispatch(startChat(receiverId));
+    const initializeChat = async (fromUserId: string, receiverId: string) => {
+        return dispatch(startChat({ currentUserId: fromUserId, toUserId: receiverId }));
     };
 
     const loadChatMessages = async (chatId: string) => {
         return dispatch(fetchChatMessages(chatId));
     };
 
-    const loadUserChats = async () => {
-        return dispatch(fetchUserChats());
-    };
+    // const loadUserChats = async () => {
+    //     return dispatch(fetchUserChats());
+    // };
 
     const selectChat = (chat: Chat) => {
         dispatch(setActiveChat(chat));
@@ -68,7 +68,7 @@ export const useChat = () => {
         loadUsers,
         initializeChat,
         loadChatMessages,
-        loadUserChats,
+        // loadUserChats,
         selectChat,
         addNewMessage,
         clearChatError,
