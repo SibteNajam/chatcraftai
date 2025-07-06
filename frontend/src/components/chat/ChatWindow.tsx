@@ -18,13 +18,25 @@ export default function ChatWindow({ chat, selectedUser, onClose }: ChatWindowPr
     const [messageText, setMessageText] = useState('');
     const [isTyping] = useState(false);
     const [showGrammarPreview, setShowGrammarPreview] = useState(false);
+    //test purpose
+    const [testText, setTestText] = useState('');
+    const [showTestGrammarPreview, setShowTestGrammarPreview] = useState(false);
+    const testInputRef = useRef<HTMLInputElement>(null);
+
+
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
 
     const { user: currentUser } = useAuth();
     const { messages, loadChatMessages } = useChat();
     const { grammarResult, isChecking, error: grammarError, checkGrammar, clearGrammarCheck } = useGrammarCheck(1500); // 1.5 second debounce
-
+    const {
+        grammarResult: testGrammarResult,
+        isChecking: testIsChecking,
+        error: testGrammarError,
+        checkGrammar: testCheckGrammar,
+        clearGrammarCheck: testClearGrammarCheck
+    } = useGrammarCheck(1500);
     const otherUser = chat.participants?.find(p => p.user.id !== currentUser?.id)?.user || selectedUser;
 
     useEffect(() => {
@@ -38,7 +50,7 @@ export default function ChatWindow({ chat, selectedUser, onClose }: ChatWindowPr
 
     useEffect(() => {
         // Check grammar when message text changes
-        if (messageText.trim().length > 3) { // Only check if more than 3 characters
+        if (messageText.trim().length > 6) { // Only check if more than 3 characters
             checkGrammar(messageText);
         } else {
             clearGrammarCheck();
@@ -52,6 +64,33 @@ export default function ChatWindow({ chat, selectedUser, onClose }: ChatWindowPr
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setMessageText(e.target.value);
     };
+
+    // ADD TEST INPUT HANDLER
+    const handleTestInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setTestText(e.target.value);
+    };
+
+
+    const applyTestSuggestion = (error: GrammarError) => {
+        const newText = testText.slice(0, error.startIndex) +
+            error.suggestion +
+            testText.slice(error.endIndex);
+        setTestText(newText);
+
+        setTimeout(() => {
+            testInputRef.current?.focus();
+        }, 100);
+    };
+    // Grammar check for test input
+    useEffect(() => {
+        if (testText.trim().length > 2) { // Start checking after 2 characters for testing
+            console.log('🧪 Testing grammar for:', testText);
+            testCheckGrammar(testText);
+        } else {
+            testClearGrammarCheck();
+        }
+    }, [testText, testCheckGrammar, testClearGrammarCheck]);
+
 
     const applySuggestion = (error: GrammarError) => {
         const newText = messageText.slice(0, error.startIndex) +
@@ -87,8 +126,92 @@ export default function ChatWindow({ chat, selectedUser, onClose }: ChatWindowPr
     const hasGrammarErrors = grammarResult?.hasErrors || false;
     const grammarErrors = grammarResult?.corrections || [];
 
+    // TEST GRAMMAR VARIABLES
+    const hasTestGrammarErrors = testGrammarResult?.hasErrors || false;
+    const testGrammarErrors = testGrammarResult?.corrections || [];
     return (
         <div className="bg-white shadow rounded-lg flex flex-col h-96">
+            {/* GRAMMAR TEST SECTION */}
+            <div className="border-b-2 border-blue-200 bg-blue-50 p-4">
+                <h4 className="text-sm font-medium text-blue-800 mb-2">🧪 Grammar Test Zone</h4>
+                <div className="space-y-2">
+                    <div className="relative">
+                        <input
+                            ref={testInputRef}
+                            type="text"
+                            value={testText}
+                            onChange={handleTestInputChange}
+                            placeholder="Type here to test grammar checking... (try: 'congr' or 'I are happy')"
+                            className={`w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${hasTestGrammarErrors ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                                }`}
+                        />
+
+                        {/* Test Grammar indicators */}
+                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center space-x-2">
+                            {testIsChecking && (
+                                <div className="animate-spin rounded-full h-4 w-4 border border-blue-500 border-t-transparent"></div>
+                            )}
+
+                            {hasTestGrammarErrors && (
+                                <button
+                                    type="button"
+                                    onClick={() => setShowTestGrammarPreview(!showTestGrammarPreview)}
+                                    className="text-red-500 hover:text-red-700"
+                                    title="Show grammar suggestions"
+                                >
+                                    <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                                    </svg>
+                                </button>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Test Grammar Status */}
+                    <div className="flex items-center space-x-2 text-xs">
+                        {testIsChecking && (
+                            <span className="text-blue-600">Checking...</span>
+                        )}
+                        {testGrammarError && (
+                            <span className="text-red-500">Error: {testGrammarError}</span>
+                        )}
+                        {hasTestGrammarErrors && (
+                            <span className="text-yellow-600">
+                                {testGrammarErrors.length} issue{testGrammarErrors.length !== 1 ? 's' : ''} found
+                            </span>
+                        )}
+                        {testText.length > 2 && !testIsChecking && !hasTestGrammarErrors && (
+                            <span className="text-green-600">✓ No issues found</span>
+                        )}
+                    </div>
+                </div>
+            </div>
+
+            {/* Test Grammar Preview */}
+            {showTestGrammarPreview && hasTestGrammarErrors && (
+                <div className="border-b border-yellow-200 bg-yellow-50 p-3">
+                    <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                            <p className="text-xs font-medium text-yellow-800 mb-1">Test Grammar Preview:</p>
+                            <div className="text-sm text-gray-700 bg-white p-2 rounded border">
+                                <GrammarHighlight
+                                    text={testText}
+                                    errors={testGrammarErrors}
+                                    onSuggestionClick={applyTestSuggestion}
+                                />
+                            </div>
+                        </div>
+                        <button
+                            onClick={() => setShowTestGrammarPreview(false)}
+                            className="ml-2 text-yellow-600 hover:text-yellow-800"
+                        >
+                            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            )}
             {/* Chat Header */}
             <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
                 <div className="flex items-center">

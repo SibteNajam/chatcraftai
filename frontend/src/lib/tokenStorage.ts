@@ -4,18 +4,18 @@ class TokenStorage {
     // private static USER_KEY = 'user_data';
 
     static getAccessToken(): string | null {
-        return localStorage.getItem(this.ACCESS_TOKEN_KEY);
+        if (typeof window !== 'undefined') {
+            return localStorage.getItem(this.ACCESS_TOKEN_KEY);
+        }
+        return null;
     }
-    static setTokens(accessToken: string, refreshToken: string) {
-        if (!accessToken || !refreshToken) {
-            throw new Error('Access token and refresh token are required');
+    static setTokens(accessToken: string, refreshToken?: string) {
+        if (typeof window !== 'undefined') {
+            localStorage.setItem(this.ACCESS_TOKEN_KEY, accessToken);
+            if (refreshToken) {
+                localStorage.setItem(this.REFRESH_TOKEN_KEY, refreshToken);
+            }
         }
-
-        localStorage.setItem(this.ACCESS_TOKEN_KEY, accessToken);
-        if (refreshToken) {
-            localStorage.setItem(this.REFRESH_TOKEN_KEY, refreshToken);
-        }
-
     }
 }
 export default TokenStorage;

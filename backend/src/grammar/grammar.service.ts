@@ -72,19 +72,36 @@ export class GrammarService {
               ]
             }
 
-            IMPORTANT RULES:
+            CRITICAL INDEX RULES:
+            - Use zero-based indexing
+            - startIndex: position where the error begins
+            - endIndex: position where the error ends (EXCLUSIVE - like JavaScript slice)
+            - For word "thes" at position 0: startIndex=0, endIndex=4 (because "thes".length is 4)
+            - For word "peen" at position 8: startIndex=8, endIndex=12
+            - ALWAYS: endIndex = startIndex + original.length
+            - Test your indices: text.slice(startIndex, endIndex) should equal the original error text
+            
+            VALIDATION EXAMPLES:
+            - Text: "thes is peen"
+            - Error 1: "thes" → startIndex=0, endIndex=4
+            - Error 2: "peen" → startIndex=8, endIndex=12
+            
+            OTHER RULES:
             - Only flag actual errors, not style preferences
-            - Be extremely precise with startIndex and endIndex (zero-based indexing)
             - Provide clear, helpful suggestions
             - Focus on grammar, spelling, and punctuation errors only
             - Return ONLY the JSON object, no additional text
-            - If no errors found, return hasErrors: false with empty corrections array
-            - Ensure startIndex and endIndex match the exact position of the error in the original text
-            - Double-check your indices before responding`,
+            - If no errors found, return hasErrors: false with empty corrections array`,
                     },
                     {
                         role: 'user',
-                        content: `Please check this text for grammar, spelling, and punctuation errors: "${text}"`,
+                        content: `Please check this text for grammar, spelling, and punctuation errors and calculate precise indices: "${text}"
+
+Text analysis:
+- Text length: ${text.length}
+- Characters: ${text.split('').map((char, i) => `${i}:'${char}'`).join(', ')}
+
+Remember: endIndex must be startIndex + original.length`,
                     },
                 ],
                 max_tokens: 1000,
@@ -111,16 +128,30 @@ export class GrammarService {
 
             // Validate each correction
             if (result.corrections) {
-                result.corrections.forEach((correction, index) => {
-                    if (
-                        typeof correction.startIndex !== 'number' ||
-                        typeof correction.endIndex !== 'number' ||
-                        correction.startIndex < 0 ||
-                        correction.endIndex > text.length ||
-                        correction.startIndex >= correction.endIndex
-                    ) {
-                        this.logger.warn(`Invalid correction indices at index ${index}: ${JSON.stringify(correction)}`);
+                result.corrections = result.corrections.map((correction, index) => {
+                    // Fix endIndex if it's wrong
+                    const expectedEndIndex = correction.startIndex + correction.original.length;
+
+                    if (correction.endIndex !== expectedEndIndex) {
+                        this.logger.warn(`Fixing endIndex for correction ${index}: was ${correction.endIndex}, should be ${expectedEndIndex}`);
+                        correction.endIndex = expectedEndIndex;
                     }
+
+                    // Validate the correction by extracting the text
+                    const extractedText = text.slice(correction.startIndex, correction.endIndex);
+                    if (extractedText !== correction.original) {
+                        this.logger.error(`Index mismatch for correction ${index}: extracted "${extractedText}", expected "${correction.original}"`);
+
+                        // Try to find the correct position
+                        const correctStartIndex = text.indexOf(correction.original);
+                        if (correctStartIndex !== -1) {
+                            correction.startIndex = correctStartIndex;
+                            correction.endIndex = correctStartIndex + correction.original.length;
+                            this.logger.warn(`Fixed indices for "${correction.original}": ${correction.startIndex}-${correction.endIndex}`);
+                        }
+                    }
+
+                    return correction;
                 });
             }
 

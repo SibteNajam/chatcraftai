@@ -18,6 +18,10 @@ export const GrammarHighlight: React.FC<GrammarHighlightProps> = ({
         return <span>{text}</span>;
     }
 
+
+    console.log('🎨 GrammarHighlight: text =', `"${text}"`);
+    console.log('🎨 GrammarHighlight: errors =', errors);
+
     // Sort errors by start index to handle overlapping correctly
     const sortedErrors = [...errors].sort((a, b) => a.startIndex - b.startIndex);
 
@@ -25,9 +29,19 @@ export const GrammarHighlight: React.FC<GrammarHighlightProps> = ({
     let lastIndex = 0;
 
     sortedErrors.forEach((error, index) => {
+        const extractedText = text.slice(error.startIndex, error.endIndex);
+        console.log(`🎨 Error ${index}: "${error.original}" at ${error.startIndex}-${error.endIndex}, extracted: "${extractedText}"`);
+
+        if (extractedText !== error.original) {
+            console.error(`🎨 INDEX MISMATCH: Expected "${error.original}", got "${extractedText}"`);
+            return; // Skip this error if indices are wrong
+        }
+
         // Add text before the error
         if (error.startIndex > lastIndex) {
-            parts.push(text.slice(lastIndex, error.startIndex));
+            const beforeText = text.slice(lastIndex, error.startIndex);
+            console.log(`🎨 Adding before text: "${beforeText}"`);
+            parts.push(beforeText);
         }
 
         // Add the highlighted error
@@ -41,7 +55,10 @@ export const GrammarHighlight: React.FC<GrammarHighlightProps> = ({
                     error.type === 'spelling' ? 'decoration-blue-500' :
                         'decoration-yellow-500'
                     } hover:bg-gray-100 group`}
-                onClick={() => onSuggestionClick(error)}
+                onClick={() => {
+                    console.log('🎨 Clicked error:', error);
+                    onSuggestionClick(error);
+                }}
                 title={`${error.type}: ${error.original} → ${error.suggestion}`}
             >
                 {errorText}
@@ -60,8 +77,11 @@ export const GrammarHighlight: React.FC<GrammarHighlightProps> = ({
 
     // Add remaining text
     if (lastIndex < text.length) {
-        parts.push(text.slice(lastIndex));
+        const remainingText = text.slice(lastIndex);
+        console.log(`🎨 Adding remaining text: "${remainingText}"`);
+        parts.push(remainingText);
     }
 
+    console.log('🎨 Final parts:', parts);
     return <>{parts}</>;
 };

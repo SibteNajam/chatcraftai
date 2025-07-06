@@ -1,4 +1,4 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 import { GrammarResponse } from '@/types/grammar';
 export class GrammarService {
     static async checkGrammar(text: string): Promise<GrammarResponse> {
@@ -10,7 +10,7 @@ export class GrammarService {
             };
         }
 
-        const response = await fetch(`${API_BASE_URL}/api/grammar/check`, {
+        const response = await fetch(`${API_BASE_URL}/grammar/check`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -20,10 +20,14 @@ export class GrammarService {
         });
 
         if (!response.ok) {
+            const errorText = await response.text();
+            console.error(' Grammar: Error response:', errorText);
             throw new Error('Failed to check grammar');
         }
 
         const result = await response.json();
+        console.log('🔍 Grammar: Result:', result);
+
         return {
             ...result,
             originalText: text,
