@@ -17,9 +17,8 @@ export const loginUser = createAsyncThunk(
             const response = await login(credentials);
             console.log(' Login response in slice:', response);
 
-            // Store the token if you need it later
+            // Swill store token later dont need now
             if (response.payload && response.payload.token) {
-                // You might want to store the token in localStorage or handle it differently
                 console.log(' Received token:', response.payload.token);
             }
 
