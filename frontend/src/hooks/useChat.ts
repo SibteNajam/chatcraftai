@@ -20,7 +20,14 @@ export const useChat = () => {
 
 
     const loadUsers = async () => {
-        return dispatch(fetchUsers());
+        try {
+            const result = await dispatch(fetchUsers());
+            console.log(' in Hook console: Users result:', result);
+            return result;
+        } catch (error) {
+            console.error(' Hook: Users error:', error);
+            throw error;
+        }
     };
 
     const initializeChat = async (receiverId: string) => {

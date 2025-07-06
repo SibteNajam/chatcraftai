@@ -1,73 +1,64 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-// import { useChat } from '@/hooks/useChat';
+import { useChat } from '@/hooks/useChat';
 import { User } from '@/types/chat';
-// import { dummyUsers } from '@/data/mockData'; // Assuming you have a dummy users data file
-// Inline dummy data (to avoid import issues)
-const dummyUsers: User[] = [
-    {
-        id: '1',
-        email: 'john.doe@example.com',
-        displayName: 'John Doe',
-        createdAt: '2024-01-15T10:30:00Z',
-    },
-    {
-        id: '2',
-        email: 'jane.smith@example.com',
-        displayName: 'Jane Smith',
-        createdAt: '2024-01-16T09:15:00Z',
-    },
-    {
-        id: '3',
-        email: 'mike.johnson@example.com',
-        displayName: 'Mike Johnson',
-        createdAt: '2024-01-17T14:45:00Z',
-    },
-    {
-        id: '4',
-        email: 'sarah.wilson@example.com',
-        displayName: 'Sarah Wilson',
-        createdAt: '2024-01-18T11:20:00Z',
-    },
-    {
-        id: '5',
-        email: 'alex.brown@example.com',
-        displayName: 'Alex Brown',
-        createdAt: '2024-01-19T16:30:00Z',
-    },
-];
+import { useAuth } from '@/hooks/auth';
+// const dummyUsers: User[] = [
+//     {
+//         id: '1',
+//         email: 'john.doe@example.com',
+//         displayName: 'John Doe',
+//         createdAt: '2024-01-15T10:30:00Z',
+//     },
+//     {
+//         id: '2',
+//         email: 'jane.smith@example.com',
+//         displayName: 'Jane Smith',
+//         createdAt: '2024-01-16T09:15:00Z',
+//     },
+//     {
+//         id: '3',
+//         email: 'mike.johnson@example.com',
+//         displayName: 'Mike Johnson',
+//         createdAt: '2024-01-17T14:45:00Z',
+//     },
+//     {
+//         id: '4',
+//         email: 'sarah.wilson@example.com',
+//         displayName: 'Sarah Wilson',
+//         createdAt: '2024-01-18T11:20:00Z',
+//     },
+//     {
+//         id: '5',
+//         email: 'alex.brown@example.com',
+//         displayName: 'Alex Brown',
+//         createdAt: '2024-01-19T16:30:00Z',
+//     },
+// ];
 
 interface UserListProps {
     onUserSelect: (user: User) => void;
 }
 export default function UserList({ onUserSelect }: UserListProps) {
-    const [users, setUsers] = useState<User[]>([]);
-    // const { users, isLoading, error, loadUsers } = useChat();
-    const [isLoading, setIsLoading] = useState(true);
+    const { users, isLoading, error, loadUsers } = useChat();
+    const { user: currentUser } = useAuth(); // Get current user
     const [isMounted, setIsMounted] = useState(false);
-
-
+    const [hasLoaded, setHasLoaded] = useState(false); // ← Add this state
     useEffect(() => {
         setIsMounted(true);
     }, []);
-    // useEffect(() => {
-    //     loadUsers();
-    // }, []);
+
     useEffect(() => {
-        if (!isMounted) return;
+        // Only load users once when component mounts
+        if (isMounted && !hasLoaded) {
+            console.log('🔄 UserList: Loading users...');
+            loadUsers();
+            setHasLoaded(true); // ← Prevent future loads
+        }
+    }, [isMounted, hasLoaded]); // ← Remove loadUsers from dependencies
 
-        const loadDummyUsers = () => {
-            setTimeout(() => {
-                setUsers(dummyUsers);
-                setIsLoading(false);
-            }, 1000);
-        };
-
-        loadDummyUsers();
-    }, [isMounted]);
-
-    // Show loading state for both !isMounted and isLoading
+    // Show loading state
     if (!isMounted || isLoading) {
         return (
             <div className="bg-white shadow rounded-lg">
@@ -83,25 +74,42 @@ export default function UserList({ onUserSelect }: UserListProps) {
         );
     }
 
-    // if (error) {
-    //     return (
-    //         <div className="p-4 bg-red-50 border border-red-200 rounded-md">
-    //             <p className="text-red-800">Error loading users: {error}</p>
-    //         </div>
-    //     );
-    // }
+    if (error) {
+        return (
+            <div className="bg-white shadow rounded-lg">
+                <div className="px-4 py-5 sm:p-6">
+                    <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
+                        Available Users
+                    </h3>
+                    <div className="p-4 bg-red-50 border border-red-200 rounded-md">
+                        <p className="text-red-800">Error loading users: {error}</p>
+                        <button
+                            onClick={() => {
+                                setHasLoaded(false); // ← Reset to allow retry
+                                loadUsers();
+                            }}
+                            className="mt-2 px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700"
+                        >
+                            Retry
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+    const otherUsers = users.filter(user => user.id !== currentUser?.id);
 
     return (
         <div className="bg-white shadow rounded-lg">
             <div className="px-4 py-5 sm:p-6">
                 <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
-                    Available Users
+                    Users ({otherUsers.length})
                 </h3>
                 <div className="space-y-3">
-                    {users.length === 0 ? (
+                    {otherUsers.length === 0 ? (
                         <p className="text-gray-500 text-center py-8">No other users found</p>
                     ) : (
-                        users.map((user) => (
+                        otherUsers.map((user) => (
                             <div
                                 key={user.id}
                                 onClick={() => onUserSelect(user)}

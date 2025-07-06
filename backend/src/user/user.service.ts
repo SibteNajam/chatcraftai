@@ -84,7 +84,26 @@ export class UserService {
     };
 
   }
+  async findAll() {
+    const users = await this.userRepository.find({
+      where: { isDeleted: false },
+      select: ['id', 'email', 'name',],
+    });
 
+    // to match frontend datatype
+    const transformedUsers = users.map(user => ({
+      id: user.id,
+      email: user.email,
+      displayName: user.name,
+    }));
+
+    return {
+      status: 'Success',
+      data: { users: transformedUsers },
+      statusCode: 200,
+      message: 'Users retrieved successfully'
+    };
+  }
   async findById(id: string) {
     const user = await this.userRepository.findOne({
       where: {

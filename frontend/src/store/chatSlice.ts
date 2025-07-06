@@ -16,8 +16,11 @@ export const fetchUsers = createAsyncThunk(
     'chat/fetchUsers',
     async (_, { rejectWithValue }) => {
         try {
-            return await getUsers();
+            const users = await getUsers();
+            console.log(' in slice: Received users:', users);
+            return users;
         } catch (error) {
+            console.error(' error in slice : Users fetch error:', error);
             return rejectWithValue(error instanceof Error ? error.message : 'Failed to fetch users');
         }
     }

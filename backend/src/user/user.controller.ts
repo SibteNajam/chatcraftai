@@ -29,7 +29,11 @@ export class UserController {
     return this.userService.createUser(createUserDto);
   }
 
-
+  @Public()
+  @Get()
+  findAll() {
+    return this.userService.findAll();
+  }
   @Public()
   @Get(':id')
   findOne(@Param('id') id: string) {
