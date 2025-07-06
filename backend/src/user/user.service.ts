@@ -56,7 +56,6 @@ export class UserService {
     user.secretTokenCreatedAt = new Date();
     user.isVerified = true;
     user.password = await bcrypt.hashSync(createUserDto.password, 10);
-
     this.validateUser(user);
     const createdUser = await this.userRepository.save(user);
     if (!createdUser) {

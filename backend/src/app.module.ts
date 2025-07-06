@@ -6,17 +6,19 @@ import { AppService } from './app.service';
 import { UserModule } from './user/user.module';
 import { databaseProvider } from './utils/connectionOptions';
 import { APP_GUARD } from '@nestjs/core';
+import { GrammarModule } from './grammar/grammar.module';
 
 @Module({
   imports: [
     TypeOrmModule.forRoot(databaseProvider),
     ConfigModule.forRoot({ isGlobal: true }),
     UserModule,
-  
+    GrammarModule,
+
   ],
   controllers: [AppController],
   providers: [
     AppService,
   ],
 })
-export class AppModule {}
+export class AppModule { }
