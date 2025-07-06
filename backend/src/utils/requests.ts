@@ -11,32 +11,35 @@ export class LoginRequest {
   @ApiProperty()
   @IsNotEmpty({ message: 'A password is required to login' })
   readonly password: string;
-  
+
 }
 
 export class ChatMessageSchema {
   chatid: string;
   message: string;
-  userid:string;
+  userid: string;
   type: string
 }
 export class RegisterUserRequest {
 
   @ApiProperty()
-  readonly name: string;
+  readonly displayName: string;
 
   @ApiProperty()
   @IsNotEmpty({ message: 'An email is required' })
   readonly email: string;
 
-  @ApiProperty()
-  readonly dateOfBirth: Date;
 
-  
+
+
 
   @ApiProperty()
   @IsNotEmpty({ message: 'A password is required' })
   @MinLength(6, { message: 'Your password must be at least 6 characters' })
   readonly password: string;
+  @ApiProperty()
+  @IsNotEmpty({ message: 'A password is required' })
+  @MinLength(6, { message: 'Your confirm password must be at least 6 characters' })
+  readonly confirmPassword: string;
 
 }

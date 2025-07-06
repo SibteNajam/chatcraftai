@@ -29,26 +29,34 @@ export class UserService {
   }
   async createUser(createUserDto: RegisterUserRequest) {
     const foundUser = await this.userRepository.findOne({
-      where: { email: createUserDto.email, isDeleted:false },
+      where: { email: createUserDto.email, isDeleted: false },
     });
     let user;
     if (foundUser) {
       throw new UnprocessableEntityException({
         status: 'Fail',
         data: {},
-        statusCode:422,
-        message:'User already exists with this email.'
+        statusCode: 422,
+        message: 'User already exists with this email.'
       });
-    }else{
+    } else {
       user = new User();
     }
-    user.name = createUserDto.name;
+    if (createUserDto.password !== createUserDto.confirmPassword) {
+      throw new UnprocessableEntityException({
+        status: 'Fail',
+        statusCode: 422,
+        message: 'Passwords do not match.',
+        data: {},
+      });
+    }
+    user.name = createUserDto.displayName;
     user.email = createUserDto.email;
-    user.dateOfBirth = createUserDto.dateOfBirth;
     user.secretToken = randomStr();
     user.secretTokenCreatedAt = new Date();
     user.isVerified = true;
     user.password = await bcrypt.hashSync(createUserDto.password, 10);
+
     this.validateUser(user);
     const createdUser = await this.userRepository.save(user);
     if (!createdUser) {
@@ -56,8 +64,8 @@ export class UserService {
         {
           status: 'Fail',
           data: {},
-          statusCode:422,
-          message:'Unable to create user. Please try again.'
+          statusCode: 422,
+          message: 'Unable to create user. Please try again.'
 
         }
       );
@@ -85,26 +93,26 @@ export class UserService {
       throw new UnauthorizedException({
         status: 'Fail',
         data: {},
-        statusCode:401,
-        message:'Unauthorized'
+        statusCode: 401,
+        message: 'Unauthorized'
       });
     }
     return {
       status: 'Success',
-      data: {data:user},
-      statusCode:200,
-      message:'User detail'
+      data: { data: user },
+      statusCode: 200,
+      message: 'User detail'
     };
   }
 
-  async  update(id: string, updateUserDto: UpdateUserDto) {
+  async update(id: string, updateUserDto: UpdateUserDto) {
     await this.userRepository.update(id, updateUserDto);
-    let user = await this.userRepository.findOne({where:{id:id}});
+    let user = await this.userRepository.findOne({ where: { id: id } });
     return {
       status: 'Success',
-      data: {data:{user:user}},
-      statusCode:200,
-      message:'User detail'
+      data: { data: { user: user } },
+      statusCode: 200,
+      message: 'User detail'
     };
   }
 
@@ -112,7 +120,7 @@ export class UserService {
     const user = await this.userRepository.findOne({
       where: {
         email,
-        
+
       },
     });
     if (user) {
@@ -121,8 +129,8 @@ export class UserService {
       throw new BadRequestException({
         status: 'Fail',
         data: {},
-        statusCode:400,
-        message:'Invalid credentials.'
+        statusCode: 400,
+        message: 'Invalid credentials.'
       });
     }
   }
@@ -136,8 +144,8 @@ export class UserService {
       throw new UnprocessableEntityException({
         status: 'Fail',
         data: {},
-        statusCode:422,
-        message:'Password is required.'
+        statusCode: 422,
+        message: 'Password is required.'
       });
     }
     // if (
@@ -153,27 +161,27 @@ export class UserService {
     return await bcrypt.hashSync(password, 10);
   }
 
-  async  remove(id: string) {
+  async remove(id: string) {
     let user = await this.userRepository.findOne({
-      where:{
-        id:id
+      where: {
+        id: id
       },
     });
-    if(user){
+    if (user) {
       //add here
-      await this.userRepository.update(id,{isDeleted:true});
+      await this.userRepository.update(id, { isDeleted: true });
       return {
         status: 'Success',
-        data: {data:"User Deleted"},
-        statusCode:200,
-        message:'User'
+        data: { data: "User Deleted" },
+        statusCode: 200,
+        message: 'User'
       };
-    }else{
+    } else {
       throw new BadRequestException({
         status: 'Fail',
         data: {},
-        statusCode:401,
-        message:'User not found'
+        statusCode: 401,
+        message: 'User not found'
       });
     }
 
@@ -181,7 +189,7 @@ export class UserService {
 
 
   validateUser(user: User) {
-   
+
     if (!user.email) {
       throw new UnprocessableEntityException('Email is required.');
     }
@@ -190,8 +198,8 @@ export class UserService {
         {
           status: 'Fail',
           data: {},
-          statusCode:422,
-          message:'A valid email address is required.'
+          statusCode: 422,
+          message: 'A valid email address is required.'
         }
       );
     }

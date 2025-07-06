@@ -2,7 +2,7 @@
 import { LoginCredentials, SignupCredentials, AuthResponse } from '@/types/auth';
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000/api';
 export async function login(credentials: LoginCredentials): Promise<any> {
-    const response = await fetch(`${API_BASE_URL}/auth/login`, {
+    const response = await fetch(`${API_BASE_URL}/user/register-user`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
