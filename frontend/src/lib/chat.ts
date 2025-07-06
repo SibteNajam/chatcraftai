@@ -1,6 +1,5 @@
 
 import { User } from '@/types/chat';
-import { Chat, Message } from '@/types/chat';
 import TokenStorage from './tokenStorage';
 const API_BASE_URL = 'http://localhost:3000';
 
@@ -40,7 +39,7 @@ export async function getUsers(): Promise<User[]> {
     }
 }
 
-export const getOrCreateChat = async (fromUserId: string, toUserId: string) => {
+export const initializeChat = async (fromUserId: string, toUserId: string) => {
     try {
         const response = await fetch(`${API_BASE_URL}/chat/${fromUserId}/${toUserId}`, {
             method: 'POST',
@@ -53,32 +52,16 @@ export const getOrCreateChat = async (fromUserId: string, toUserId: string) => {
         }
 
         const result = await response.json();
-        console.log('✅ API: Chat created/retrieved:', result);
+        console.log(' API: Chat created/retrieved:', result);
         const chat = result.data.data;
         return chat;
     } catch (error) {
-        console.error('❌ API: Error creating/getting chat:', error);
+        console.error(' API: Error creating/getting chat:', error);
         throw error;
     }
 };
 
 
-// export async function initializeChat(receiverId: string): Promise<Chat> {
-//     const response = await fetch(`${API_BASE_URL}/chat/start`, {
-//         method: 'POST',
-//         headers: {
-//             'Content-Type': 'application/json',
-//         },
-//         credentials: 'include',
-//         body: JSON.stringify({ receiverId }),
-//     });
-
-//     if (!response.ok) {
-//         throw new Error('Failed to start chat');
-//     }
-
-//     return response.json();
-// }
 
 export const getChatMessages = async (chatId: string) => {
     try {
@@ -94,21 +77,10 @@ export const getChatMessages = async (chatId: string) => {
         }
 
         const messages = await response.json();
-        console.log('✅ API: Messages retrieved:', messages);
+        console.log('API: Messages retrieved:', messages);
         return messages;
     } catch (error) {
-        console.error('❌ API: Error getting chat messages:', error);
+        console.error(' API: Error getting chat messages:', error);
         throw error;
     }
 };
-export async function getUserChats(): Promise<Chat[]> {
-    const response = await fetch(`${API_BASE_URL}/chat`, {
-        credentials: 'include',
-    });
-
-    if (!response.ok) {
-        throw new Error('Failed to fetch chats');
-    }
-
-    return response.json();
-}

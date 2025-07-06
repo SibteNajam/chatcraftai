@@ -33,7 +33,7 @@ export const signupUser = createAsyncThunk(
     'auth/signup',
     async (credentials: SignupCredentials, { rejectWithValue }) => {
         try {
-            const response = await signup(credentials);
+            const response = await signup(credentials);///here we call the signup function from lib/auth.ts
             console.log('Signup response in slice:', response);
             if (response.status === 'Success' && response.data && response.data.user) {
                 return response.data.user; // Return the user object

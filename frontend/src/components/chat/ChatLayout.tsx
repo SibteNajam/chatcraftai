@@ -89,6 +89,7 @@ export default function ChatLayout() {
 
                         {/* Chat Window */}
                         <div>
+                            {/* test file to send message using sockets */}
                             <ChatApp />
 
                             {chatLoading ? (

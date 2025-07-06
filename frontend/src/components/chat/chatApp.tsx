@@ -3,12 +3,12 @@
 import React, { useEffect, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 
-const socket: Socket = io('http://localhost:3000'); // Replace with your backend URL
+const socket: Socket = io('http://localhost:3000');
 
 const ChatApp: React.FC = () => {
     const [message, setMessage] = useState('');
-    const [chatId, setChatId] = useState('755d5f20-ff08-47f7-8d63-99a251463e5c'); // replace with actual chatId
-    const [userId, setUserId] = useState('130a2482-d66c-48f9-8538-994a93ed9fa2'); // replace with actual userId
+    const [chatId, setChatId] = useState('755d5f20-ff08-47f7-8d63-99a251463e5c');
+    const [userId, setUserId] = useState('130a2482-d66c-48f9-8538-994a93ed9fa2');
     const [messages, setMessages] = useState<any[]>([]);
 
     useEffect(() => {

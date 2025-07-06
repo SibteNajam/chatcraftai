@@ -17,7 +17,7 @@ export const useChat = () => {
     const users = chatState.users || [];
     const activeChat = chatState.activeChat || null;
 
-
+    // currently not propelry setup
 
     const loadUsers = async () => {
         try {
